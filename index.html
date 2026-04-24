@@ -444,7 +444,7 @@ function update(p){
     const t=mp(p,.44,.80,0,1);
     // 급가속 커브: 앞부분 느리게 꼬물꼬물 유지 → 뒷부분에서 확 당겨옴
     const tRush=Math.pow(t,2.4);
-    const scale=0.018*Math.exp(tRush*5.5);
+    const scale=0.018+tRush*(3.7-0.018); // 리니어 스케일 (0.018→3.7)
     // wiggle은 줌 시작 초반에만 살짝 남기고 빠르게 소멸
     const wigFade=Math.max(0,1-t*3.5);
     const cx=POS.startX+t*t*(POS.endX-POS.startX)+wigX*wigFade;
