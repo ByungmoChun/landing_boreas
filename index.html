@@ -429,20 +429,30 @@ function update(p){
   fxWind.style.transform=`rotate(${windAngle.toFixed(2)}deg) scale(${wS.toFixed(3)})`;
 
   // ── 캐릭터 (canvas 좌표계 기준) ──────────────────────
+  // 꼬물꼬물: 바이크 페달 리듬으로 좌우 흔들 + 상하 바운스
+  const now=Date.now();
+  const wigX=Math.sin(now*0.006)*2.8;          // 좌우 흔들 (페달 리듬)
+  const wigY=Math.abs(Math.sin(now*0.013))*-2.0; // 위아래 바운스
+
   if(p<.44){
-    charWrap.style.left=POS.startX+'px';
-    charWrap.style.top=POS.startY+'px';
+    charWrap.style.left=(POS.startX+wigX).toFixed(1)+'px';
+    charWrap.style.top=(POS.startY+wigY).toFixed(1)+'px';
     charImg.style.transform='translateX(-50%) scale(.018)';
-    charImg.style.opacity='0';
+    // 처음엔 서서히 등장, 이후 뚜렷하게 보임
+    charImg.style.opacity=p<.06?'0':Math.min(0.88,mp(p,.06,.22,0,.88)).toFixed(3);
   } else if(p<.80){
     const t=mp(p,.44,.80,0,1);
-    const scale=0.018*Math.exp(t*5.5);
-    const cx=POS.startX+t*t*(POS.endX-POS.startX);
-    const cy=POS.startY+t*t*(POS.endY-POS.startY);
+    // 급가속 커브: 앞부분 느리게 꼬물꼬물 유지 → 뒷부분에서 확 당겨옴
+    const tRush=Math.pow(t,2.4);
+    const scale=0.018*Math.exp(tRush*5.5);
+    // wiggle은 줌 시작 초반에만 살짝 남기고 빠르게 소멸
+    const wigFade=Math.max(0,1-t*3.5);
+    const cx=POS.startX+t*t*(POS.endX-POS.startX)+wigX*wigFade;
+    const cy=POS.startY+t*t*(POS.endY-POS.startY)+wigY*wigFade;
     charWrap.style.left=cx.toFixed(1)+'px';
     charWrap.style.top=cy.toFixed(1)+'px';
     charImg.style.transform=`translateX(-50%) scale(${scale.toFixed(4)})`;
-    charImg.style.opacity=Math.min(1,t*18).toFixed(3);
+    charImg.style.opacity=Math.min(1,0.88+t*0.15).toFixed(3);
   } else if(p<.88){
     const t2=mp(p,.80,.88,0,1);
     const scale=3.7+t2*8;
